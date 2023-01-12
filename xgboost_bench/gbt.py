@@ -26,9 +26,9 @@ def convert_probs_to_classes(y_prob):
 
 
 def convert_xgb_predictions(y_pred, objective):
-    if objective == 'multi:softprob':
+    if objective == 'multi:softprob_oneapi':
         y_pred = convert_probs_to_classes(y_pred)
-    elif objective == 'binary:logistic':
+    elif objective == 'binary:logistic_oneapi':
         y_pred = y_pred.astype(np.int32)
     return y_pred
 
@@ -67,8 +67,8 @@ parser.add_argument('--min-split-loss', '--gamma', type=float, default=0,
 parser.add_argument('--n-estimators', type=int, default=100,
                     help='The number of gradient boosted trees')
 parser.add_argument('--objective', type=str, required=True,
-                    choices=('reg:squarederror', 'binary:logistic',
-                             'multi:softmax', 'multi:softprob'),
+                    choices=('reg:squarederror_oneapi', 'binary:logistic_oneapi',
+                             'multi:softmax_oneapi', 'multi:softprob_oneapi'),
                     help='Specifies the learning task')
 parser.add_argument('--reg-alpha', type=float, default=0,
                     help='L1 regularization term on weights')
@@ -80,7 +80,11 @@ parser.add_argument('--single-precision-histogram', default=False, action='store
                     help='Build histograms instead of double precision')
 parser.add_argument('--subsample', type=float, default=1,
                     help='Subsample ratio of the training instances')
-parser.add_argument('--tree-method', type=str, required=True,
+parser.add_argument('--tree_method', type=str, required=True,
+                    help='The tree construction algorithm used in XGBoost')
+parser.add_argument('--updater', type=str, required=True,
+                    help='The tree construction algorithm used in XGBoost')
+parser.add_argument('--predictor', type=str, required=True,
                     help='The tree construction algorithm used in XGBoost')
 
 params = bench.parse_args(parser)
@@ -107,6 +111,8 @@ xgb_params = {
     'reg_lambda': params.reg_lambda,
     'reg_alpha': params.reg_alpha,
     'tree_method': params.tree_method,
+    'updater': params.updater,
+    'predictor': params.predictor,
     'scale_pos_weight': params.scale_pos_weight,
     'grow_policy': params.grow_policy,
     'max_leaves': params.max_leaves,
