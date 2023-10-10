@@ -26,10 +26,10 @@ def convert_probs_to_classes(y_prob):
 
 
 def convert_xgb_predictions(y_pred, objective):
-    if objective == 'multi:softprob_oneapi':
+    if objective == 'multi:softprob':
         y_pred = convert_probs_to_classes(y_pred)
-    elif objective == 'binary:logistic_oneapi':
-        y_pred = y_pred.astype(np.int32)
+    elif objective == 'binary:logistic':
+        y_pred = (y_pred >= 0.5).astype(np.int32)
     return y_pred
 
 
@@ -67,8 +67,8 @@ parser.add_argument('--min-split-loss', '--gamma', type=float, default=0,
 parser.add_argument('--n-estimators', type=int, default=100,
                     help='The number of gradient boosted trees')
 parser.add_argument('--objective', type=str, required=True,
-                    choices=('reg:squarederror_oneapi', 'binary:logistic_oneapi',
-                             'multi:softmax_oneapi', 'multi:softprob_oneapi'),
+                    choices=('reg:squarederror', 'binary:logistic',
+                             'multi:softmax', 'multi:softprob'),
                     help='Specifies the learning task')
 parser.add_argument('--reg-alpha', type=float, default=0,
                     help='L1 regularization term on weights')
@@ -82,10 +82,8 @@ parser.add_argument('--subsample', type=float, default=1,
                     help='Subsample ratio of the training instances')
 parser.add_argument('--tree_method', type=str, required=True,
                     help='The tree construction algorithm used in XGBoost')
-parser.add_argument('--updater', type=str, required=True,
-                    help='The tree construction algorithm used in XGBoost')
-parser.add_argument('--predictor', type=str, required=True,
-                    help='The tree construction algorithm used in XGBoost')
+parser.add_argument('--device_name', type=str, required=True,
+                    help='Device')
 
 params = bench.parse_args(parser)
 # Default seed
@@ -111,8 +109,7 @@ xgb_params = {
     'reg_lambda': params.reg_lambda,
     'reg_alpha': params.reg_alpha,
     'tree_method': params.tree_method,
-    'updater': params.updater,
-    'predictor': params.predictor,
+    'device': params.device_name,
     'scale_pos_weight': params.scale_pos_weight,
     'grow_policy': params.grow_policy,
     'max_leaves': params.max_leaves,
@@ -123,6 +120,7 @@ xgb_params = {
     'enable_experimental_json_serialization':
         params.enable_experimental_json_serialization
 }
+
 
 if params.threads != -1:
     xgb_params.update({'nthread': params.threads})
@@ -166,7 +164,6 @@ else:
             dmatrix = xgb.DMatrix(X_test, y_test)
         return booster.predict(dmatrix)
 
-
 fit_time, booster = bench.measure_function_time(
     fit, None if params.count_dmatrix else dtrain, params=params)
 train_metric = metric_func(
@@ -180,8 +177,8 @@ predict_time, y_pred = bench.measure_function_time(
 test_metric = metric_func(convert_xgb_predictions(y_pred, params.objective), y_test)
 
 bench.print_output(library='xgboost', algorithm=f'gradient_boosted_trees_{task}',
-                   stages=['training', 'prediction'],
-                   params=params, functions=['gbt.fit', 'gbt.predict'],
-                   times=[fit_time, predict_time], metric_type=metric_name,
-                   metrics=[train_metric, test_metric], data=[X_train, X_test],
-                   alg_instance=booster, alg_params=xgb_params)
+                stages=['training', 'prediction'],
+                params=params, functions=['gbt.fit', 'gbt.predict'],
+                times=[fit_time, predict_time], metric_type=metric_name,
+                metrics=[train_metric, test_metric], data=[X_train, X_test],
+                alg_instance=booster, alg_params=xgb_params)

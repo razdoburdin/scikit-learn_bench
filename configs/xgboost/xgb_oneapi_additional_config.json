@@ -6,8 +6,7 @@
       "dtype": "float32",
       "algorithm": "gbt",
       "tree_method": "hist",
-      "updater": "grow_quantile_histmaker_oneapi",
-      "predictor": "oneapi_predictor",
+      "device_name": "sycl:gpu",
       "max-depth": 8,
       "learning-rate": 0.1,
       "reg-lambda": 1,
@@ -15,45 +14,45 @@
   },
   "cases": [
       {
-          "objective": "binary:logistic_oneapi",
-          "scale-pos-weight": 2.1067817411664587,
-          "dataset": [
-              {
-                  "source": "npy",
-                  "name": "airline",
-                  "training": {
-                      "x": "data/airline_x_train.npy",
-                      "y": "data/airline_y_train.npy"
-                  },
-                  "testing": {
-                      "x": "data/airline_x_test.npy",
-                      "y": "data/airline_y_test.npy"
-                  }
-              }
-          ],
-          "n-estimators": [100, 100, 100, 100, 100]
-      },
-      {
-          "objective": "binary:logistic_oneapi",
-          "scale-pos-weight": 173.63348001466812,
-          "dataset": [
-              {
-                  "source": "npy",
-                  "name": "bosch",
-                  "training": {
-                      "x": "data/bosch_x_train.npy",
-                      "y": "data/bosch_y_train.npy"
-                  },
-                  "testing": {
-                      "x": "data/bosch_x_test.npy",
-                      "y": "data/bosch_y_test.npy"
-                  }
-              }
-          ],
-          "n-estimators": [100, 100, 100, 100, 100]
-      },
-      {
-          "objective": "multi:softmax_oneapi",
+        "objective": "binary:logistic",
+        "scale-pos-weight": 2.1067817411664587,
+        "dataset": [
+            {
+                "source": "npy",
+                "name": "airline",
+                "training": {
+                    "x": "data/airline_x_train.npy",
+                    "y": "data/airline_y_train.npy"
+                },
+                "testing": {
+                    "x": "data/airline_x_test.npy",
+                    "y": "data/airline_y_test.npy"
+                }
+            }
+        ],
+        "n-estimators": [100]
+    },
+    {
+        "objective": "binary:logistic",
+        "scale-pos-weight": 173.63348001466812,
+        "dataset": [
+            {
+                "source": "npy",
+                "name": "bosch",
+                "training": {
+                    "x": "data/bosch_x_train.npy",
+                    "y": "data/bosch_y_train.npy"
+                },
+                "testing": {
+                    "x": "data/bosch_x_test.npy",
+                    "y": "data/bosch_y_test.npy"
+                }
+            }
+        ],
+        "n-estimators": [100]
+    },
+    {
+          "objective": "multi:softmax",
           "dataset": [
               {
                   "source": "npy",
@@ -68,10 +67,10 @@
                   }
               }
           ],
-          "n-estimators": [100, 100, 100, 100, 100]
+          "n-estimators": [100]
       },
       {
-          "objective": "binary:logistic_oneapi",
+          "objective": "binary:logistic",
           "scale-pos-weight": 2.0017715678375363,
           "dataset": [
               {
@@ -87,10 +86,10 @@
                   }
               }
           ],
-          "n-estimators": [100, 100, 100, 100, 100]
+          "n-estimators": [100]
       },
       {
-          "objective": "binary:logistic_oneapi",
+          "objective": "binary:logistic",
           "scale-pos-weight": 578.2868020304569,
           "dataset": [
               {
@@ -106,10 +105,10 @@
                   }
               }
           ],
-          "n-estimators": [100, 100, 100, 100, 100]
+          "n-estimators": [100]
       },
       {
-          "objective": "binary:logistic_oneapi",
+          "objective": "binary:logistic",
           "scale-pos-weight": 1.8872389605086624,
           "dataset": [
               {
@@ -125,10 +124,10 @@
                   }
               }
           ],
-          "n-estimators": [100, 100, 100, 100, 100]
+          "n-estimators": [100]
       },
       {
-          "objective": "reg:squarederror_oneapi",
+          "objective": "reg:squarederror",
           "dataset": [
               {
                   "source": "npy",
@@ -143,7 +142,7 @@
                   }
               }
           ],
-          "n-estimators": [100, 100, 100, 100, 100]
+          "n-estimators": [100]
       }
   ]
 }

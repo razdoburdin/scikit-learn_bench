@@ -6,8 +6,7 @@
         "dtype": "float32",
         "algorithm": "gbt",
         "tree_method": "hist",
-        "updater": "grow_quantile_histmaker_oneapi",
-        "predictor": "oneapi_predictor"
+        "device_name": "sycl:gpu"
     },
     "cases": [
         {
@@ -27,8 +26,8 @@
             ],
             "learning-rate": 0.03,
             "max-depth": 6,
-            "n-estimators": [1000, 1000, 1000, 1000, 1000],
-            "objective": "reg:squarederror_oneapi"
+            "n-estimators": [1000],
+            "objective": "reg:squarederror"
         },
         {
             "dataset": [
@@ -54,8 +53,8 @@
             "min-child-weight": 0,
             "max-depth": 8,
             "max-leaves": 256,
-            "n-estimators": [1000, 1000, 1000, 1000, 1000],
-            "objective": "binary:logistic_oneapi"
+            "n-estimators": [1000],
+            "objective": "binary:logistic"
         },
         {
             "dataset": [
@@ -81,95 +80,8 @@
             "min-child-weight": 0,
             "max-depth": 8,
             "max-leaves": 256,
-            "n-estimators": [100, 100, 100, 100, 100],
-            "objective": "binary:logistic_oneapi",
-            "enable-experimental-json-serialization": "False",
-            "inplace-predict": ""
-        },
-        {
-            "dataset": [
-                {
-                    "source": "npy",
-                    "name": "higgs1m",
-                    "training": {
-                        "x": "data/higgs1m_x_train.npy",
-                        "y": "data/higgs1m_y_train.npy"
-                    },
-                    "testing": {
-                        "x": "data/higgs1m_x_test.npy",
-                        "y": "data/higgs1m_y_test.npy"
-                    }
-                }
-            ],
-            "reg-alpha": 0.9,
-            "max-bin": 256,
-            "scale-pos-weight": 2,
-            "learning-rate": 0.1,
-            "subsample": 1,
-            "reg-lambda": 1,
-            "min-child-weight": 0,
-            "max-depth": 8,
-            "max-leaves": 256,
-            "n-estimators": [300, 300, 300, 300, 300],
-            "objective": "binary:logistic_oneapi",
-            "enable-experimental-json-serialization": "False",
-            "inplace-predict": ""
-        },
-        {
-            "dataset": [
-                {
-                    "source": "npy",
-                    "name": "higgs1m",
-                    "training": {
-                        "x": "data/higgs1m_x_train.npy",
-                        "y": "data/higgs1m_y_train.npy"
-                    },
-                    "testing": {
-                        "x": "data/higgs1m_x_test.npy",
-                        "y": "data/higgs1m_y_test.npy"
-                    }
-                }
-            ],
-            "reg-alpha": 0.9,
-            "max-bin": 256,
-            "scale-pos-weight": 2,
-            "learning-rate": 0.1,
-            "subsample": 1,
-            "reg-lambda": 1,
-            "min-child-weight": 0,
-            "max-depth": 8,
-            "max-leaves": 256,
-            "n-estimators": [1000, 1000, 1000, 1000, 1000],
-            "objective": "binary:logistic_oneapi",
-            "enable-experimental-json-serialization": "False",
-            "inplace-predict": ""
-        },
-        {
-            "dataset": [
-                {
-                    "source": "npy",
-                    "name": "higgs1m",
-                    "training": {
-                        "x": "data/higgs1m_x_train.npy",
-                        "y": "data/higgs1m_y_train.npy"
-                    },
-                    "testing": {
-                        "x": "data/higgs1m_x_test.npy",
-                        "y": "data/higgs1m_y_test.npy"
-                    }
-                }
-            ],
-            "reg-alpha": 0.9,
-            "max-bin": 256,
-            "scale-pos-weight": 2,
-            "learning-rate": 0.1,
-            "subsample": 1,
-            "reg-lambda": 1,
-            "min-child-weight": 0,
-            "max-depth": 8,
-            "max-leaves": 256,
-            "n-estimators": [3000, 3000, 3000, 3000, 3000],
-            "objective": "binary:logistic_oneapi",
+            "n-estimators": [100, 300, 1000],
+            "objective": "binary:logistic",
             "enable-experimental-json-serialization": "False",
             "inplace-predict": ""
         },
@@ -190,8 +102,8 @@
             ],
             "learning-rate": 0.03,
             "max-depth": 6,
-            "n-estimators": [1000, 1000, 1000, 1000, 1000],
-            "objective": "multi:softprob_oneapi"
+            "n-estimators": [1000],
+            "objective": "multi:softprob"
         },
         {
             "dataset": [
@@ -211,8 +123,8 @@
             "min-child-weight": 1,
             "min-split-loss": 0.1,
             "max-depth": 8,
-            "n-estimators": [200, 200, 200, 200, 200],
-            "objective": "multi:softprob_oneapi",
+            "n-estimators": [200],
+            "objective": "multi:softprob",
             "single-precision-histogram": ""
         },
         {
@@ -226,8 +138,8 @@
                     }
                 }
             ],
-            "n-estimators": [100, 100, 100, 100, 100],
-            "objective": "reg:squarederror_oneapi",
+            "n-estimators": [100],
+            "objective": "reg:squarederror",
             "max-depth": 8,
             "scale-pos-weight": 2,
             "learning-rate": 0.1,
@@ -252,8 +164,8 @@
                     }
                 }
             ],
-            "n-estimators": [60, 60, 60, 60, 60],
-            "objective": "multi:softprob_oneapi",
+            "n-estimators": [60],
+            "objective": "multi:softprob",
             "max-depth": 7,
             "subsample": 0.7,
             "colsample-bytree": 0.7
@@ -273,8 +185,8 @@
                     }
                 }
             ],
-            "n-estimators": [10000, 10000, 10000, 10000, 10000],
-            "objective": "binary:logistic_oneapi",
+            "n-estimators": 10000,
+            "objective": "binary:logistic",
             "max-depth": 1,
             "subsample": 0.5,
             "eta": 0.1,
