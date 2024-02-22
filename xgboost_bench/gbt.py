@@ -82,6 +82,8 @@ parser.add_argument('--subsample', type=float, default=1,
                     help='Subsample ratio of the training instances')
 parser.add_argument('--tree-method', type=str, required=True,
                     help='The tree construction algorithm used in XGBoost')
+parser.add_argument('--device_name', type=str, required=True,
+                    help='Device')
 
 params = bench.parse_args(parser)
 # Default seed
@@ -107,6 +109,7 @@ xgb_params = {
     'reg_lambda': params.reg_lambda,
     'reg_alpha': params.reg_alpha,
     'tree_method': params.tree_method,
+    'device': params.device_name,
     'scale_pos_weight': params.scale_pos_weight,
     'grow_policy': params.grow_policy,
     'max_leaves': params.max_leaves,
@@ -160,7 +163,7 @@ else:
             dmatrix = xgb.DMatrix(X_test, y_test)
         return booster.predict(dmatrix)
 
-
+params.box_filter_measurements = 1
 fit_time, booster = bench.measure_function_time(
     fit, None if params.count_dmatrix else dtrain, params=params)
 train_metric = metric_func(
@@ -174,8 +177,42 @@ predict_time, y_pred = bench.measure_function_time(
 test_metric = metric_func(convert_xgb_predictions(y_pred, params.objective), y_test)
 
 bench.print_output(library='xgboost', algorithm=f'gradient_boosted_trees_{task}',
-                   stages=['training', 'prediction'],
-                   params=params, functions=['gbt.fit', 'gbt.predict'],
-                   times=[fit_time, predict_time], metric_type=metric_name,
-                   metrics=[train_metric, test_metric], data=[X_train, X_test],
-                   alg_instance=booster, alg_params=xgb_params)
+                stages=['training', 'prediction'],
+                params=params, functions=['gbt.fit', 'gbt.predict'],
+                times=[fit_time, predict_time], metric_type=metric_name,
+                metrics=[train_metric, test_metric], data=[X_train, X_test],
+                alg_instance=booster, alg_params=xgb_params)
+
+# for i in range(1):
+#     # CPU
+#     dtest = xgb.DMatrix(X_test, y_test)
+#     booster.set_param({"device": "cpu"})
+#     booster.set_param({"verbosity": "0"})
+#     predict_time_cpu, y_pred = bench.measure_function_time(
+#         predict, None if params.inplace_predict or params.count_dmatrix else dtest, params=params)
+#     test_metric_cpu = metric_func(convert_xgb_predictions(y_pred, params.objective), y_test)
+
+#     # SYCL CPU
+#     dtest = xgb.DMatrix(X_test, y_test)
+#     booster.set_param({"device": "sycl:cpu"})
+#     predict_time_sycl_cpu, y_pred = bench.measure_function_time(
+#         predict, None if params.inplace_predict or params.count_dmatrix else dtest, params=params)
+#     test_metric_sycl_cpu = metric_func(convert_xgb_predictions(y_pred, params.objective), y_test)
+
+#     # SYCL GPU
+#     dtest = xgb.DMatrix(X_test, y_test)
+#     booster.set_param({"device": "sycl:gpu"})
+#     predict_time_sycl_gpu, y_pred = bench.measure_function_time(
+#         predict, None if params.inplace_predict or params.count_dmatrix else dtest, params=params)
+#     test_metric_sycl_gpu = metric_func(convert_xgb_predictions(y_pred, params.objective), y_test)
+
+
+#     bench.print_output(library='xgboost', algorithm=f'gradient_boosted_trees_{task}',
+#                     stages=['training', 'prediction_cpu', 'prediction_sycl_cpu', 'prediction_sycl_gpu'],
+#                     params=params,
+#                     functions=['gbt.fit', 'gbt.predict'],
+#                     times=[fit_time, predict_time_cpu, predict_time_sycl_cpu, predict_time_sycl_gpu],
+#                     metric_type=metric_name,
+#                     metrics=[train_metric, test_metric_cpu, test_metric_sycl_cpu, test_metric_sycl_gpu],
+#                     data=[X_train, X_test, X_test, X_test],
+#                     alg_instance=booster, alg_params=xgb_params)

@@ -6,7 +6,7 @@
         "dtype": "float32",
         "algorithm": "gbt",
         "tree-method": "hist",
-        "count-dmatrix": "",
+        "device_name": "sycl",
         "max-depth": 8,
         "learning-rate": 0.1,
         "reg-lambda": 1,
