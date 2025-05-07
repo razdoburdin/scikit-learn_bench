@@ -6,11 +6,12 @@
         "dtype": "float32",
         "algorithm": "gbt",
         "tree-method": "hist",
-        "device_name": "sycl",
+        "device_name": "cpu",
         "max-depth": 8,
         "learning-rate": 0.1,
         "reg-lambda": 1,
-        "max-leaves": 256
+        "max-leaves": 256,
+        "n-estimators": [100, 100, 100, 100, 100]
     },
     "cases": [
         {

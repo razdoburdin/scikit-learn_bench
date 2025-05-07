@@ -14,11 +14,57 @@
 # limitations under the License.
 # ===============================================================================
 
+from typing import Callable
+
 import argparse
 
 import bench
 import numpy as np
 import xgboost as xgb
+
+class IterForDMatrixDemo(xgb.core.DataIter):
+    """A data iterator for XGBoost DMatrix.
+
+    `reset` and `next` are required for any data iterator, other functions here
+    are utilites for demonstration's purpose.
+
+    """
+    def __init__(self, X_train, y_train, batch_size=int(1e7)) -> None:
+        self.batch_size = np.minimum(batch_size, X_train.shape[0])
+        self._data = X_train.values
+        self._labels = y_train.values
+        self._labels.shape = (y_train.shape[0], 1)
+
+        self.it = 0  # set iterator to 0
+        super().__init__()
+
+    def data(self):
+        """Utility function for obtaining current batch of data."""
+        begin = self.it
+        end = np.minimum(self.it + self.batch_size, len(self._data))
+        return self._data[begin:end, :]
+
+    def labels(self):
+        """Utility function for obtaining current batch of label."""
+        begin = self.it
+        end = np.minimum(self.it + self.batch_size, len(self._data))
+        return self._labels[begin:end]
+
+    def reset(self) -> None:
+        """Reset the iterator"""
+        self.it = 0
+
+    def next(self, input_data: Callable) -> bool:
+        """Yield the next batch of data."""
+        if self.it >= len(self._data):
+            # Return False to let XGBoost know this is the end of iteration
+            return False
+
+        # input_data is a keyword-only function passed in by XGBoost and has the similar
+        # signature to the ``DMatrix`` constructor.
+        input_data(data=self.data(), label=self.labels())
+        self.it += self.batch_size
+        return True
 
 
 def convert_probs_to_classes(y_prob):
@@ -95,7 +141,7 @@ X_train, X_test, y_train, y_test = bench.load_data(params)
 
 xgb_params = {
     'booster': 'gbtree',
-    'verbosity': 0,
+    'verbosity': 3,
     'learning_rate': params.learning_rate,
     'min_split_loss': params.min_split_loss,
     'max_depth': params.max_depth,
@@ -143,9 +189,12 @@ else:
     if params.n_classes > 2:
         xgb_params['num_class'] = params.n_classes
 
+# it = IterForDMatrixDemo(X_train, y_train)
+# m_with_it = xgb.QuantileDMatrix(it)
+
 dtrain = xgb.DMatrix(X_train, y_train)
 dtest = xgb.DMatrix(X_test, y_test)
-
+n_samples = int(min(1e4, X_test.shape[0]))
 
 def fit(dmatrix):
     if dmatrix is None:
@@ -163,24 +212,73 @@ else:
             dmatrix = xgb.DMatrix(X_test, y_test)
         return booster.predict(dmatrix)
 
+
+if params.inplace_predict:
+    def predict2(*args):
+        return booster.inplace_predict(np.ascontiguousarray(X_test.iloc[0:n_samples].values,
+                                                            dtype=np.float32))
+else:
+    def predict2(dmatrix):  # type: ignore
+        if dmatrix is None:
+            dmatrix = xgb.DMatrix(X_test, y_test)
+        return booster.predict(dmatrix)
+
 params.box_filter_measurements = 1
+
+
 fit_time, booster = bench.measure_function_time(
+    # fit, None if params.count_dmatrix else m_with_it, params=params)
     fit, None if params.count_dmatrix else dtrain, params=params)
+
 train_metric = metric_func(
     convert_xgb_predictions(
+        # booster.predict(m_with_it),
         booster.predict(dtrain),
         params.objective),
     y_train)
 
 predict_time, y_pred = bench.measure_function_time(
     predict, None if params.inplace_predict or params.count_dmatrix else dtest, params=params)
+
 test_metric = metric_func(convert_xgb_predictions(y_pred, params.objective), y_test)
 
+dtest = xgb.DMatrix(X_test.iloc[0:n_samples], y_test[0:n_samples])
+predict_batch_time, y_pred_batch = bench.measure_function_time(
+    predict2, None if params.inplace_predict or params.count_dmatrix else dtest, params=params)
+
+test_metric_batch = metric_func(convert_xgb_predictions(y_pred_batch, params.objective), y_test[0:n_samples])
+
+predict_time_1b1 = 0
+y_pred_1b1 = np.zeros(n_samples, dtype=y_pred_batch.dtype)
+# Single line inference
+booster.set_param('nthread', 1)
+for line in range(n_samples):
+    if params.inplace_predict:
+        def single_line_inplace_predict():
+            return booster.inplace_predict(np.ascontiguousarray(X_test.iloc[line:line+1].values,
+                                                                dtype=np.float32))
+        predict_time_single, y_pred_single = bench.measure_function_time(single_line_inplace_predict, params=params)
+
+    else:
+        dtest_single = xgb.DMatrix(X_test.iloc[line:line+1], label=[y_test[line]])
+        predict_time_single, y_pred_single = bench.measure_function_time(
+            predict2, None if params.inplace_predict or params.count_dmatrix else dtest_single, params=params)
+
+    predict_time_1b1 += predict_time_single
+    # print(y_pred_single)
+    # print(y_pred.shape)
+    # print(y_test.shape)
+    # print(convert_xgb_predictions(y_pred_single, params.objective))
+    y_pred_1b1[line:line+1] = convert_xgb_predictions(y_pred_single, params.objective)
+
+test_1b1_metric = metric_func(y_pred_1b1, y_test[0:n_samples])
+assert(test_1b1_metric == test_metric_batch)
+
 bench.print_output(library='xgboost', algorithm=f'gradient_boosted_trees_{task}',
-                stages=['training', 'prediction'],
+                stages=['training', 'prediction', 'batch_prediction', 'single line prediction'],
                 params=params, functions=['gbt.fit', 'gbt.predict'],
-                times=[fit_time, predict_time], metric_type=metric_name,
-                metrics=[train_metric, test_metric], data=[X_train, X_test],
+                times=[fit_time, predict_time, predict_batch_time, predict_time_1b1], metric_type=metric_name,
+                metrics=[train_metric, test_metric, test_metric_batch, test_1b1_metric], data=[X_train, X_test, X_test.iloc[0:n_samples], X_test.iloc[0:n_samples]],
                 alg_instance=booster, alg_params=xgb_params)
 
 # for i in range(1):

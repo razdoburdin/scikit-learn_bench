@@ -6,7 +6,7 @@
         "dtype": "float32",
         "algorithm": "gbt",
         "tree-method": "hist",
-        "device_name": "sycl"
+        "device_name": "cpu"
     },
     "cases": [
         {
@@ -26,7 +26,7 @@
             ],
             "learning-rate": 0.03,
             "max-depth": 6,
-            "n-estimators": 1000,
+            "n-estimators": [1000, 1000, 1000, 1000, 1000],
             "objective": "reg:squarederror"
         },
         {
@@ -53,7 +53,7 @@
             "min-child-weight": 0,
             "max-depth": 8,
             "max-leaves": 256,
-            "n-estimators": 1000,
+            "n-estimators": [1000, 1000, 1000, 1000, 1000],
             "objective": "binary:logistic"
         },
         {
@@ -80,7 +80,11 @@
             "min-child-weight": 0,
             "max-depth": 8,
             "max-leaves": 256,
-            "n-estimators": [100, 300, 1000, 3000, 10000, 30000],
+            "n-estimators": [100, 100, 100, 100, 100,
+                             300, 300, 300, 300, 300,
+                             1000, 1000, 1000, 1000, 1000,
+                             3000, 3000, 3000, 3000, 3000,
+                             10000, 10000, 10000, 10000, 10000],
             "objective": "binary:logistic",
             "enable-experimental-json-serialization": "False",
             "inplace-predict": ""
@@ -102,7 +106,7 @@
             ],
             "learning-rate": 0.03,
             "max-depth": 6,
-            "n-estimators": 1000,
+            "n-estimators": [1000, 1000, 1000, 1000, 1000],
             "objective": "multi:softprob"
         },
         {
@@ -123,7 +127,7 @@
             "min-child-weight": 1,
             "min-split-loss": 0.1,
             "max-depth": 8,
-            "n-estimators": 200,
+            "n-estimators": [200, 200, 200, 200, 200],
             "objective": "multi:softprob",
             "single-precision-histogram": ""
         },
@@ -138,7 +142,7 @@
                     }
                 }
             ],
-            "n-estimators": 100,
+            "n-estimators": [100, 100, 100, 100, 100],
             "objective": "reg:squarederror",
             "max-depth": 8,
             "scale-pos-weight": 2,
@@ -164,7 +168,7 @@
                     }
                 }
             ],
-            "n-estimators": 60,
+            "n-estimators": [60, 60, 60, 60, 60],
             "objective": "multi:softprob",
             "max-depth": 7,
             "subsample": 0.7,
@@ -185,7 +189,7 @@
                     }
                 }
             ],
-            "n-estimators": 10000,
+            "n-estimators": [10000, 10000, 10000, 10000, 10000],
             "objective": "binary:logistic",
             "max-depth": 1,
             "subsample": 0.5,
